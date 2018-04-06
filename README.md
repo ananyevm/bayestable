@@ -1,6 +1,13 @@
 # Bayes Table: Summarizing and Presenting Results of MCMC Inference in Plain Text/LaTex/HTML
 It is customary for empirical researchers to estimate many models and then show their results side-by-side in a table. This package provides this capability for the models, where inference is done through MCMC. Built on top of [Philip Leifield's](https://www.philipleifeld.com/) [texreg](https://cran.r-project.org/web/packages/texreg/index.html) package, `bayestable` provides a way to present summaries of several models in one LaTex/HTML/Word table.
 
+## Installation
+You can install the package from GitHub using `devtools`:
+```{r}
+devtools::install_github("ananyevm/bayestable")
+```
+This is still an early development version, so expect some adventures.
+
 ## Example
 ### Context
 Here, we consider a simple use case. Let's begin with loading packages and generating some fake data:
