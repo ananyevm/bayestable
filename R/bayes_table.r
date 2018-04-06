@@ -21,18 +21,18 @@
 #' library(bayestable)
 #'
 #' ## Generating some fake data
-#' N<-100
-#' x1<-rnorm(N)
-#' x2<-rnorm(N)
-#' beta<-c(0.3,-0.3)
-#' y<- 0.1 + beta[1]*x1 + beta[2]*x2+rnorm(N)
+#' N <- 100
+#' x1 <- rnorm(N)
+#' x2 <- rnorm(N)
+#' beta <-c (0.3,-0.3)
+#' y <- 0.1 + beta[1]*x1 + beta[2]*x2 + rnorm(N)
 #'
 #' ## Define three JAGS models
 #' code1<-"
 #'   model{
 #'     for (i in 1:N){
 #'       y[i] ~ dnorm(mu[i], sigma)
-#'       mu[i]<-a
+#'       mu[i] <- a
 #'     }
 #'    a ~ dnorm(0, 0.001)
 #'    sigma <- pow(tau, -2)
@@ -55,7 +55,7 @@
 #'   model{
 #'    for (i in 1:N){
 #'     y[i] ~ dnorm(mu[i], sigma)
-#'     mu[i]<-a+beta1*x1[i]+beta2*x2[i]
+#'     mu[i]<-a + beta1*x1[i] + beta2*x2[i]
 #'   }
 #'   a ~ dnorm(0, 0.001)
 #'   beta1 ~ dnorm(0,0.001)
@@ -94,25 +94,24 @@
 #'
 #' ## generating table
 #' bayes.table(datalist, ylist, yreplist,
-#'            custom.coef.map = list("a"="Intercept",
-#'                                    "beta1"="GDP",
-#'                                    "beta2"="Polity"),
+#'            custom.coef.map = list("a" = "Intercept",
+#'                                    "beta1" = "GDP",
+#'                                    "beta2" = "Polity"),
 #'            include.rsquared = T, HPDI.prob = 0.97)
 #'
 #'
-bayes.table<-function(datalist, ylist, yreplist=NULL,
-                      include.nobs=TRUE,
+bayes.table<-function(datalist, ylist, yreplist = NULL,
+                      include.nobs = TRUE,
                       include.rsquared = FALSE,
                       include.eff.size = TRUE,
-                      include.geweke=TRUE,
-                      custom.coef.map=NULL,
-                      custom.model.names=NULL,
-                      HPDI=TRUE,
-                      HPDI.prob=0.95,
-                      output="latex",
-                      caption=""){
+                      include.geweke = TRUE,
+                      custom.coef.map = NULL,
+                      custom.model.names = NULL,
+                      HPDI = TRUE,
+                      HPDI.prob = 0.95,
+                      output = "latex",
+                      caption = ""){
 
-  ## Making sure that valid inputs are supplied
 
   assertthat::assert_that(!is.null(datalist))
   assertthat::assert_that(assertthat::not_empty(datalist))
@@ -174,9 +173,9 @@ bayes.table<-function(datalist, ylist, yreplist=NULL,
     p1<-gsub("^{*}","", p1, fixed=T)
     gsub("*","", p1, fixed=T)
   }else if (output=="word"){
-    p1<-texreg::screenreg(mcmc.datalist, include.geweke=include.geweke,
-              include.rsquared=include.rsquared,
-              include.nobs=include.nobs, custom.note = "",
+    p1<-texreg::screenreg(mcmc.datalist, include.geweke = include.geweke,
+              include.rsquared = include.rsquared,
+              include.nobs = include.nobs, custom.note = "",
               custom.coef.map = custom.coef.map,
               include.eff.size = include.eff.size,
               custom.model.names = custom.model.names,

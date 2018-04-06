@@ -50,18 +50,18 @@ library(texreg)
 library(bayestable)
 
 ## Generating some fake data
-N<-100
-x1<-rnorm(N)
-x2<-rnorm(N)
-beta<-c(0.3,-0.3)
-y<- 0.1 + beta[1]*x1 + beta[2]*x2+rnorm(N)
+N <- 100
+x1 <- rnorm(N)
+x2 <- rnorm(N)
+beta <-c (0.3,-0.3)
+y <- 0.1 + beta[1]*x1 + beta[2]*x2 + rnorm(N)
 
 ## Define three JAGS models
 code1<-"
   model{
     for (i in 1:N){
       y[i] ~ dnorm(mu[i], sigma)
-      mu[i]<-a
+      mu[i] <- a
     }
    a ~ dnorm(0, 0.001)
    sigma <- pow(tau, -2)
@@ -84,7 +84,7 @@ code3<-"
   model{
    for (i in 1:N){
     y[i] ~ dnorm(mu[i], sigma)
-    mu[i]<-a+beta1*x1[i]+beta2*x2[i]
+    mu[i]<-a + beta1*x1[i] + beta2*x2[i]
   }
   a ~ dnorm(0, 0.001)
   beta1 ~ dnorm(0,0.001)
@@ -123,9 +123,9 @@ yreplist<-list(samples1.rep, samples2.rep, samples3.rep)
 
 ## generating table
 bayes.table(datalist, ylist, yreplist,
-           custom.coef.map = list("a"="Intercept",
-                                   "beta1"="GDP",
-                                   "beta2"="Polity"),
+           custom.coef.map = list("a" = "Intercept",
+                                   "beta1" = "GDP",
+                                   "beta2" = "Polity"),
            include.rsquared = T, HPDI.prob = 0.97)
 
 

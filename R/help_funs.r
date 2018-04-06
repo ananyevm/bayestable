@@ -18,8 +18,8 @@ calc.predict.medians<-function(yrep){
 #' calc.r.sq(c(3,2,4), c(1,2,0))
 calc.r.sq<-function(y, mu.rep){
   y.mean<-mean(y)
-  tss<- sum((y-y.mean)^2)
-  rss<- sum((y-mu.rep)^2)
+  tss<-sum((y-y.mean)^2)
+  rss<-sum((y-mu.rep)^2)
   rsq = round(1-(rss/tss),3)
   return (rsq)
 }

@@ -26,10 +26,10 @@ mcmcfit<-setClass("mcmcfit",package = "bayestable")
 # calculates all the quantities to be displayed in the table
 
 setMethod("extract", "mcmcfit",
-          function(model, include.nobs=TRUE,
-                   include.rsquared=TRUE,
-                   include.eff.size=TRUE,
-                   include.geweke=FALSE,...){
+          function(model, include.nobs = TRUE,
+                   include.rsquared = TRUE,
+                   include.eff.size = TRUE,
+                   include.geweke = FALSE,...){
             samples<-model$samples
             s<-summary(samples)
             names<-colnames(samples[[1]])
@@ -40,11 +40,11 @@ setMethod("extract", "mcmcfit",
               co<-s$statistics[1]
               se<-s$statistics[2]
             }
-            pval <- numeric(0)
+            pval<-numeric(0)
 
-            gof <- numeric()
-            gof.names <- character()
-            gof.decimal <- logical()
+            gof<-numeric()
+            gof.names<-character()
+            gof.decimal<-logical()
 
             mu.rep<-numeric(0)
 
@@ -54,38 +54,37 @@ setMethod("extract", "mcmcfit",
 
 
             if(include.nobs==TRUE){
-              n <- length(model$outcomes)
-              gof <- c(gof, n)
-              gof.names <- c(gof.names, "Num. obs.")
-              gof.decimal <- c(gof.decimal, FALSE)
+              n<-length(model$outcomes)
+              gof<-c(gof, n)
+              gof.names<-c(gof.names, "Num. obs.")
+              gof.decimal<-c(gof.decimal, FALSE)
             }
             if(include.rsquared==TRUE){
               if(is.null(model$ppredict)){
                 print ("For calculating R-squared your should supply
                        a matrix of draws of fitted values")
               }else{
-                rsq = calc.r.sq(y, mu.rep)
-                gof <- c(gof, rsq)
-                gof.names <- c(gof.names, "R$^2$")
-                gof.decimal <- c(gof.decimal, TRUE)
-
+                rsq<-calc.r.sq(y, mu.rep)
+                gof<-c(gof, rsq)
+                gof.names<-c(gof.names, "R$^2$")
+                gof.decimal<-c(gof.decimal, TRUE)
               }
             }
             if(include.eff.size==TRUE){
               eff.size = min(coda::effectiveSize(model$samples))
-              gof <- c(gof, eff.size)
-              gof.names <- c(gof.names, "Eff. Size")
-              gof.decimal <- c(gof.decimal, TRUE)
+              gof<-c(gof, eff.size)
+              gof.names<-c(gof.names, "Eff. Size")
+              gof.decimal<-c(gof.decimal, TRUE)
             }
 
             if(include.geweke==TRUE){
               geweke = calc.geweke(model$samples)
-              gof <- c(gof, geweke)
-              gof.names <- c(gof.names, "Geweke Diag.")
-              gof.decimal <- c(gof.decimal, TRUE)
+              gof<-c(gof, geweke)
+              gof.names<-c(gof.names, "Geweke Diag.")
+              gof.decimal<-c(gof.decimal, TRUE)
             }
 
-            tr <- createTexreg(
+            tr<-createTexreg(
               coef.names = names,
               coef = co,
               se = se,
