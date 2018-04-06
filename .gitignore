@@ -1,1 +1,4 @@
-
+.Rbuildignore
+.Rhistory
+bayestable.Rproj
+.Rproj.user/
