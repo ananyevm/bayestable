@@ -1,0 +1,413 @@
+---
+title: "Some Simple Bayesian Models Using (R)JAGS"
+Author: Maxim Ananyev
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+---
+
+## 1. Prerequisites
+This tutorial is prepared for Prof. Jeffrey Lewis's UCLA class *PS 209 Bayesian Statistics and MCMC Inference for Social Sciences*. It shows how to estimate some models common for the social science applications. It does not discuss the theory of Bayesian inference or computational methods (for those please consult Simon Jackman's textbook or other excellent resources, It's main goal is to show how you can fit different models.
+
+Here is a list of software that you might need:
+
+* [R](https://www.r-project.org/): a language and an interpreter for statistical computing
+* [dplyr](https://cran.r-project.org/web/packages/dplyr/), [reshape2](https://cran.r-project.org/web/packages/reshape/), and [ggplot2](https://cran.r-project.org/web/packages/ggplot2/): R packages for data manipulation and vizualization
+* [Rstudio](https://www.rstudio.com/): an IDE for R
+* [JAGS](http://mcmc-jags.sourceforge.net/): a sampler for Bayesian models
+* [rjags](https://cran.r-project.org/web/packages/dplyr/), [coda](https://cran.r-project.org/web/packages/coda/): R packages that allow compiling JAGS models from R code, sampling from them
+* [bayesplot](https://cran.r-project.org/web/packages/bayesplot/), [mcmcplots](https://cran.r-project.org/web/packages/mcmcplots/),[ggmcmc](https://cran.r-project.org/web/packages/ggmcmc/), [xtable](https://cran.r-project.org/web/packages/xtable/): R packages useful for vizualizing and presenting MCMC results    
+
+One way to figure out whether everythings is installed correctly you might try to run this code. The code should show a plot approximating density of a standard normal dstribution.
+
+```{r warning=FALSE, message=FALSE, fig.asp=0.5}
+library(rjags)
+
+code<- "
+  model{
+    y~dnorm(0,1)
+  }"
+
+jags<-jags.model(textConnection(code),quiet = T)
+samples<-coda.samples(jags, variable.names = c("y"), n.iter = 1000)
+densplot(samples)
+```
+
+
+
+
+
+## 2 . Simple Linear Regression
+
+### 2.1. Specifying the Model and Sampling 
+
+Of course, using JAGS if you just want to fit a linear model is an overkill, but it is still a useful starting point for more complex models.
+
+First, load some useful packages and generate some fake data
+
+```{r message=FALSE, warning=FALSE}
+library(rjags)
+library(coda)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(bayesplot)
+library(mcmcplots)
+```
+
+
+
+```{r}
+N<-100
+x1<-rnorm(N)
+x2<-rnorm(N)
+beta<-c(0.3,-0.3)
+y<- 0.1 + beta[1]*x1 + beta[2]*x2+rnorm(N)
+```
+
+Now,let's describe the model with JAGS code. In JAGS code, you need to specify the likelihood for all the observations and a prior for every parameter.
+
+```{r}
+code<-"
+  model{
+    
+    #Specifying likelihood for every observation
+
+    for (i in 1:N){
+      y[i] ~ dnorm(mu[i], sigma)
+      mu[i]<-a+beta[1]*x1[i] + beta[2]*x2[i]
+    }
+
+    #Specifying priors for the coeffients
+
+    a ~ dnorm(0, 0.001)
+
+    for (i in 1:2){
+      beta[i] ~ dnorm(0,0.001)
+    }
+    
+    sigma <- pow(tau, -2)
+    tau ~ dunif(0,100)
+  }
+"
+```
+
+Now, let's draw samples from the posterior distribution of the coefficients, 
+
+```{r message= FALSE, warning=FALSE}
+## Specification of the model is in the string "code"
+model.spec<-textConnection(code)
+
+## Compile the code of the model with the user-supplied data
+jags<-jags.model(model.spec, data = list('x1'=x1,
+                                         'x2'=x2,
+                                         'N'=N, 
+                                         `y`=y), quiet = T)
+
+## Draw samples from 
+samples.coef<-coda.samples(jags, variable.names = c("a", "beta"), 
+                      n.iter=10000)
+```
+
+### 2.2 Posterior Draws
+
+Once the samples are drawn, we can look at them to inspect convergence, find point estimates, and quantify uncertainty.
+
+
+```{r}
+plot(samples.coef)
+```
+
+Trace plots -- those hairy caterpillars on the left -- shows the path of MCMC samples. Density plots on the right show the approximation of posterior densities of the coefficients. 
+
+You can read more about the convergence diagnostics, but in most of the simple cases one can get a rough idea of whether the MCMC chain converged or not just by looking at the traceplots.
+
+### 2.3 Plotting Posterior Predictive Destributions
+
+One can sample not only the coefficients of your model, but also predicted values of the outcome.
+
+```{r message=F, warning=F}
+samples<-jags.samples(jags, variable.names = c("mu"), n.iter=1000)
+```
+
+
+It might be instructive to plot the density of of the posterior means against the actual data
+```{r fig.asp=0.5, message=FALSE, warning=FALSE}
+# Calculating posterior means and putting them into one data frame with the actual   data
+post.means<-apply(samples$mu, 1, mean)
+predict.dta <- data.frame(post.means, y)%>%
+               melt()
+
+ggplot(predict.dta,aes(x=value, fill=variable)) + 
+      geom_density(alpha=0.25)+
+      theme_bw()
+```
+
+
+Instead of plotting posterior means, one can plot a set of posterior draws using *bayesplot* package.
+
+```{r warning=FALSE, message=FALSE}
+yrep <- matrix(samples$mu, ncol = length(y))
+ppc_dens_overlay(y, yrep[1:500,])
+```
+
+### 2.4 Showing Coefficient Plot
+
+```{r fig.asp=0.5}
+library(mcmcplots)
+caterplot(samples.coef, reorder = F)
+```
+
+### 2.6 Presenting Results in a Latex Table
+Usual workflow of an empirical analyst involves fitting many different models and presentng them in neat Latex tabes with multiple models per table.
+
+I have created a simple function that uses package to create Latex tables for the fitted models with the follwing rules:
+1. Posterior mean is a point estimate
+2. 95-percent credible intervals are shown instead of standard errors. Lower limit is 2.5 percentile among the posterior draws, and upper limit is 97.5 percentile.
+3. No significance stars are shown
+
+Let's begin by fitting three linear models
+
+```{r warning=FALSE, message=FALSE, results="asis"}
+code1<-"
+  model{
+    for (i in 1:N){
+      y[i] ~ dnorm(mu[i], sigma)
+      mu[i]<-a
+    }
+    a ~ dnorm(0, 0.001)
+    sigma <- pow(tau, -2)
+    tau ~ dunif(0,100)
+  }
+"
+
+
+code2<-"
+  model{
+    for (i in 1:N){
+      y[i] ~ dnorm(mu[i], sigma)
+      mu[i]<-a+beta1*x1[i]
+    }
+    a ~ dnorm(0, 0.001)
+    beta1 ~ dnorm(0,0.001)
+    sigma <- pow(tau, -2)
+    tau ~ dunif(0,100)
+  }
+"
+
+code3<-"
+  model{
+    for (i in 1:N){
+      y[i] ~ dnorm(mu[i], sigma)
+      mu[i]<-a+beta1*x1[i]+beta2*x2[i]
+    }
+    a ~ dnorm(0, 0.001)
+    
+    beta1 ~ dnorm(0,0.001)
+    beta2 ~ dnorm(0,0.001)   
+
+    sigma <- pow(tau, -2)
+    tau ~ dunif(0,100)
+  }
+"
+
+model1.spec<-textConnection(code1)
+jags1<-jags.model(model1.spec, data = list('N'=N, 
+                                         'y'=y), quiet = T)
+samples1<-coda.samples(jags1, variable.names = c("a"), 
+                      n.iter=1000,
+                      nchain=4)
+
+samples1.rep<-coda.samples(jags1, variable.names = c("mu"), 
+                      n.iter=1000,
+                      nchain=4)
+
+
+model2.spec<-textConnection(code2)
+jags2<-jags.model(model2.spec, data = list('x1'=x1,
+                                         'N'=N, 
+                                         'y'=y), quiet = T)
+samples2<-coda.samples(jags2, variable.names = c("a", "beta1"), 
+                      n.iter=1000,
+                      nchain=4)
+samples2.rep<-coda.samples(jags2, variable.names = c("mu"), 
+                      n.iter=1000,
+                      nchain=4)
+
+
+model3.spec<-textConnection(code3)
+jags3<-jags.model(model3.spec, data = list('x1'=x1,
+                                         'x2'=x2,
+                                         'N'=N, 
+                                         'y'=y), quiet = T)
+samples3<-coda.samples(jags3, variable.names = c("a", "beta1", "beta2"), 
+                      n.iter=1000,
+                      nchain=4)
+
+samples3.rep<-coda.samples(jags3, variable.names = c("mu"), 
+                      n.iter=1000,
+                      nchain=4)
+
+
+
+datalist<-list(samples1, samples2, samples3)
+ylist<-list(y,y,y)
+yreplist<-list(samples1.rep, samples2.rep, samples3.rep)
+
+bayes.table(list(samples1, samples2, samples3),
+            list(y,y,y), 
+            yreplist = list(samples1.rep, samples2.rep,samples3.rep) , HPDI=T,
+            custom.coef.map = list("a"="Intercept",
+                                   "beta1"="GDP",
+                                   "beta2"="Polity"), include.rsquared = T, HPDI.prob = 0.97, output="word")
+
+```
+
+
+### 2.5 How Non-convergence Might Look Like
+For a contrast, let's inspect how non-convergence looks like. We will make a slight change to the code above to make the model non-identifiable from the data: we will add a second constant.
+
+```{r}
+code<-"
+  model{
+    # Likelihood with two intercepts
+
+    for (i in 1:N){
+      y[i] ~ dnorm(mu[i], sigma)
+      mu[i]<-a1+a2+beta[1]*x1[i] + beta[2]*x2[i]
+    }
+    
+    a1 ~ dnorm(0, 0.001)
+    a2 ~ dnorm(0, 0.001)
+
+    for (i in 1:2){
+      beta[i] ~ dnorm(0,0.001)
+    }
+    
+    sigma <- pow(tau, -2)
+    tau ~ dunif(0,100)
+  }
+"
+```
+
+Now, we have two intercepts, but the data are the same, and We can not distingiush between the intercepts with our data. Let's compile the new model and sample the intercepts
+
+```{r warning=FALSE, message=FALSE}
+model.spec<-textConnection(code)
+jags<-jags.model(model.spec, data = list('x1'=x1,
+                                         'x2'=x2,
+                                         'N'=N, 
+                                         'y'=y), quiet = T)
+
+samples<-coda.samples(jags, variable.names = c("a1", "a2"), 
+                      n.iter=1000, 
+                      nchains=4)
+```
+
+Now, let's look at the traceplots and the densities
+```{r}
+plot(samples)
+```
+This is how non-convergence might look like (so you can recognize it when you see it). Instead of hairy caterpillars, we see something like a stock market: random walk that goes up and down unpredictably and never converges to one area. In many cases, when you see a plot like this and your sampler does not converge with some meaningful number of iterations, it might mean that your model can not be identified.
+
+
+## 3. Binary Classification with Probit
+
+When you response variable is binary, it is customary to use logit or probit. 
+
+### 3.1 Specifying the model and Sampling
+Let's generate some fake data
+
+```{r}
+x1<-rnorm(N)
+x2<-rnorm(N)
+beta<-c(0.4,-0.2)
+y_star<-0.2+0.4*x1- 0.2*x2 + rnorm(N)
+y<-rbinom(N,1, pnorm(y_star))
+```
+
+Let's specify the model with JAGS
+```{r}
+code<-"
+  model{
+    for (i in 1:N){
+      y[i] ~ dbern(p[i])
+      probit(p[i]) <-a+beta[1]*x1[i]+beta[2]*x2[i]
+    }
+    a ~ dnorm(0,0.001)
+    for (i in 1:2){
+      beta[i] ~ dnorm(0,0.001)
+    }
+}"
+```
+
+And let's compile it, sample from the posterior distributions of the parameters, and plot the samples.
+```{r warning=FALSE, message=FALSE}
+model.spec<-textConnection(code)
+jags<-jags.model(model.spec, data = list('y'=y, 
+                                          'x1'=x1, 
+                                          'x2'=x2,
+                                          'N'=N), quiet = T)
+
+samples<-coda.samples(jags, variable.names = c("a","beta"), n.iter=1000)
+plot(samples)
+```
+
+### 3.2 Predicted Probabilities
+
+Defining a model with predicted probabilities.
+
+```{r}
+code<-"
+  model{
+    for (i in 1:N){
+      y[i] ~ dbern(p[i])
+      probit(p[i]) <-a+beta[1]*x1[i]+beta[2]*x2[i]
+    }
+    a ~ dnorm(0,0.001)
+    for (i in 1:2){
+      beta[i] ~ dnorm(0,0.001)
+    }
+  
+    p1<-phi(a+beta[1]*lowx1+beta[2]*medx2)
+    p2<-phi(a+beta[1]*highx1+beta[2]*medx2)
+}"
+
+
+
+
+
+```
+
+Sampling from predicted probabilities:
+
+```{r warning=FALSE, message=FALSE, fig.asp=0.5}
+lowx1<-sort(x1)[25]
+highx1<-sort(x1)[75]
+medx2<-median(x2)
+
+
+model.spec<-textConnection(code)
+
+jags<-jags.model(model.spec, data = list('y'=y, 
+                                          'x1'=x1, 
+                                          'x2'=x2,
+                                          'lowx1'=lowx1,
+                                          'highx1'= highx1,
+                                          'medx2'=medx2,
+                                          'N'=N), quiet = TRUE)
+
+samples<-coda.samples(jags, variable.names = c("p1","p2" ), n.iter=1000)
+
+sum.data<-summary(samples)$statistics[1:4]
+ps<-round(sum.data[1:2],2)
+cis<-2*sum.data[3:4]
+ns<-c("Low X1", "High X1")
+sum.dta<-data.frame(cbind(ns,as.numeric(ps),as.numeric(cis)))
+
+ggplot(sum.dta, aes(x=ns, y=ps)) +
+  geom_errorbar(width=.05, aes(ymin=ps-cis, ymax=ps+cis))+
+  geom_point(shape=21, size=3, fill="white") + theme_bw()+
+  labs(x = "Values of X1", y="Predicted Probability")
+```

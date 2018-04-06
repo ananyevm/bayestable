@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1522978460662.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2163289407",
+    "id" : "3D1DE0B",
+    "lastKnownWriteTime" : 1522987434,
+    "last_content_update" : 1522987434132,
+    "path" : "~/GitHub/bayestable/R/help_funs.r",
+    "project_path" : "R/help_funs.r",
+    "properties" : {
+        "cursorPosition" : "11,0",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

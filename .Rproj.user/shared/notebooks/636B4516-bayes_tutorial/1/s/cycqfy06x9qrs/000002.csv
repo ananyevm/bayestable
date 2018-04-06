@@ -1,0 +1,12 @@
+"0","```r
+```r
+# Calculating posterior means and putting them into one data frame with the actual   data
+post.means<-apply(samples$mu, 1, mean)
+predict.dta <- data.frame(post.means, y)%>%
+               melt()
+
+ggplot(predict.dta,aes(x=value, fill=variable)) + 
+      geom_density(alpha=0.25)+
+      theme_bw()
+```
+```"

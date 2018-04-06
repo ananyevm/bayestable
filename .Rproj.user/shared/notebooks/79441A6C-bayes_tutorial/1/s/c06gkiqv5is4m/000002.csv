@@ -1,0 +1,14 @@
+"0","```r
+code<-\"
+  model{
+    for (i in 1:N){
+      y[i] ~ dbern(p[i])
+      probit(p[i]) <-a+beta[1]*x1[i]+beta[2]*x2[i]
+    }
+    a ~ dnorm(0,0.001)
+    for (i in 1:2){
+      b1 ~ dnorm(0,0.001)
+      b2 ~ dnorm(0,0.001)
+    }
+}\"
+```"

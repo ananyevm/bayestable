@@ -1,0 +1,19 @@
+"0","```r
+code<-\"
+  model{
+    for (i in 1:N){
+      y[i] ~ dbern(p[i])
+      probit(p[i]) <-a+beta[1]*x1[i]+beta[2]*x2[i]
+    }
+    a ~ dnorm(0,0.001)
+    for (i in 1:2){
+      beta[i] ~ dnorm(0,0.001)
+    }
+  
+    p1<-phi(a+beta[1]*lowx1+beta[2]*medx2)
+    p2<-phi(a+beta[1]*highx1+beta[2]*medx2)
+}\"
+model1.spec<-textConnection(code1)
+```"
+"1","Error in textConnection(code1) : object 'code1' not found
+"

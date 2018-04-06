@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1522980020061.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2213631274",
+    "id" : "87BE1B3A",
+    "lastKnownWriteTime" : 1522992731,
+    "last_content_update" : 1522992731433,
+    "path" : "~/GitHub/Bayes_Tutorial/bayes_tutorial.Rmd",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "61,0",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

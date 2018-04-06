@@ -1,0 +1,4 @@
+"0","```r
+yrep <- matrix(samples$mu, ncol = length(y))
+ppc_dens_overlay(y, yrep[1:500,])
+```"

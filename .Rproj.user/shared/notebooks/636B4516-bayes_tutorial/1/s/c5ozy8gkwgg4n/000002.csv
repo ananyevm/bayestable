@@ -1,0 +1,29 @@
+"0","```r
+lowx1<-sort(x1)[25]
+highx1<-sort(x1)[75]
+medx2<-median(x2)
+
+
+model.spec<-textConnection(code)
+
+jags<-jags.model(model.spec, data = list('y'=y, 
+                                          'x1'=x1, 
+                                          'x2'=x2,
+                                          'lowx1'=lowx1,
+                                          'highx1'= highx1,
+                                          'medx2'=medx2,
+                                          'N'=N), quiet = TRUE)
+
+samples<-coda.samples(jags, variable.names = c(\"p1\",\"p2\" ), n.iter=1000)
+
+sum.data<-summary(samples)$statistics[1:4]
+ps<-round(sum.data[1:2],2)
+cis<-2*sum.data[3:4]
+ns<-c(\"Low X1\", \"High X1\")
+sum.dta<-data.frame(cbind(ns,as.numeric(ps),as.numeric(cis)))
+
+ggplot(sum.dta, aes(x=ns, y=ps)) +
+  geom_errorbar(width=.05, aes(ymin=ps-cis, ymax=ps+cis))+
+  geom_point(shape=21, size=3, fill=\"white\") + theme_bw()+
+  labs(x = \"Values of X1\", y=\"Predicted Probability\")
+```"
