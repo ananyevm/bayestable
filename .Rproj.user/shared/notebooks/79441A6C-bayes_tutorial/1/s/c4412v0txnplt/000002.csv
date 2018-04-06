@@ -1,7 +1,0 @@
-"0","```r
-x1<-rnorm(100)
-x2<-rnorm(100)
-beta<-c(0.4,-0.2)
-y_star<-0.2+0.4*x1- 0.2*x2 + rnorm(100)
-y<-rbinom(100,1, pnorm(y_star))
-```"

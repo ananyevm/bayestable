@@ -1,3 +1,0 @@
-"0","```r
-samples<-jags.samples(jags, variable.names = c(\"mu\"), n.iter=1000)
-```"

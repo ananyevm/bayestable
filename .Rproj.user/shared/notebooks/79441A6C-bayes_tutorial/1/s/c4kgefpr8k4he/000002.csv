@@ -1,6 +1,0 @@
-"0","library(rjags)"
-"0","library(coda)"
-"0","library(dplyr)"
-"0","library(ggplot2)"
-"0","library(reshape2)"
-"0","library(bayesplot)"
