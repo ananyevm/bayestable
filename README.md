@@ -209,7 +209,7 @@ stan_code<-"
 "
 ```
 
-Let's compile the model and sample both the coefficients (`a`, `beta1`, and `beta3`) and fitted values (`mu`)
+Let's compile the model and sample both the coefficients (`a`, `beta1`, and `beta2`) and fitted values (`mu`)
 
 
 ```{r}
