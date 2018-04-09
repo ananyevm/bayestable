@@ -179,7 +179,7 @@ If you fitted your model using Stan sampler, then you need to convert the output
 
 Consider the following example:
 
-First, let's write a simple linear model with Stan (I do not use vectorization for compatability with fake data example generated earlier)
+First, let's write a simple linear model with Stan (I do not use vectorization for compatability with fake data example generated earlier).
 
 ```{r}
 stan_code<-"
@@ -200,7 +200,7 @@ stan_code<-"
   transformed parameters {
     vector[N] mu;
     for (i in 1:N){
-		mu[i] = a + beta1*x1[i] + beta2*x2[i];
+	  mu[i] = a + beta1*x1[i] + beta2*x2[i];
     }
   }
   model {
@@ -225,7 +225,8 @@ Then, we need to transform `stanfit` object into `coda::mcmc.list` object.
 library(coda)
 samples<- mcmc.list(lapply(1:ncol(fit1), function(x) mcmc(as.array(fit1)[,x,])))
 
-## because we have three parameters, and 100 observations, we know that first three chains are the chains for the parameters
+## because we have three parameters, and 100 observations, 
+## we know that first three chains are the chains for the parameters
 coef.samples <- samples[,1:3]
 
 ## and chains from the 4 to 103 are the fitted values
