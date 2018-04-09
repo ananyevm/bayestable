@@ -5,7 +5,7 @@ It is customary for empirical researchers to estimate many models and then show 
 You can install the package from GitHub using `devtools`:
 ```{r}
 ## install prerequisites
-install.packages("texreg")
+install.packages(с("texreg","coda"))
 
 ## install bayestable
 devtools::install_github("ananyevm/bayestable")
