@@ -174,12 +174,12 @@ Geweke Diag.     1.04      2.02     1.01
 
 Other things that can be customized: inclusion of any of the goodness-of-fit and convergence metric, names of the models, caption, probability for the HPD intervals. Please consult the manual pages for options.
 
-### Using Stan
+## Example with Stan
 If you fitted your model using Stan sampler, then you need to convert the output into `coda::mcmc.list` object first. This can be done using the [code from Ben Goodrich](https://groups.google.com/forum/#!topic/stan-users/gxm3iTL21Ck)
 
 Consider the following example:
 
-First, let's write a simple linear model with Stan (I do not use vectorization for compatability with fake data example generated earlier).
+First, let's write a simple linear model with Stan .
 
 ```{r}
 stan_code<-"
