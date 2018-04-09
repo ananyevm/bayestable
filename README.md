@@ -260,3 +260,5 @@ Geweke Diag.     2.13
 
 You can combine many models in one table in this way. 
 You do not need to include samples of fitted values if  you do not want r-squared to be included (it is not included by default).
+
+That's it. Feel free to report issues an request new features!
