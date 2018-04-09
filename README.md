@@ -4,6 +4,10 @@ It is customary for empirical researchers to estimate many models and then show 
 ## Installation
 You can install the package from GitHub using `devtools`:
 ```{r}
+## install prerequisites
+install.packages("texreg")
+
+## install bayestable
 devtools::install_github("ananyevm/bayestable")
 ```
 This is still an early development version, so expect some adventures.
@@ -170,4 +174,88 @@ Geweke Diag.     1.04      2.02     1.01
 
 Other things that can be customized: inclusion of any of the goodness-of-fit and convergence metric, names of the models, caption, probability for the HPD intervals. Please consult the manual pages for options.
 
-Please feel free to report any issues or request features.
+### Using Stan
+If you fitted your model using Stan sampler, then you need to convert the output into `coda::mcmc.list` object first. This can be done using the [code from Ben Goodrich](https://groups.google.com/forum/#!topic/stan-users/gxm3iTL21Ck)
+
+Consider the following example:
+
+First, let's write a simple linear model with Stan (I do not use vectorization for compatability with fake data example generated earlier)
+
+```{r}
+stan_code<-"
+  data {
+    int N;
+    real y[N];
+    real x1[N];
+    real x2[N];
+  }
+
+  parameters {
+    real a;
+    real beta1;
+    real beta2;
+    real<lower=0> sigma;
+  }
+
+  transformed parameters {
+    vector[N] mu;
+    for (i in 1:N){
+		mu[i] = a + beta1*x1[i] + beta2*x2[i];
+    }
+  }
+  model {
+    y ~ normal(mu,sigma);
+  }
+"
+```
+
+Let's compile the model and sample both the coefficients (`a`, `beta1`, and `beta3`) and fitted values (`mu`)
+
+
+```{r}
+fit1<-stan(model_code = stan_code, data = list(N=100, y=y, x1=x1, x2=x2),
+             pars = c("a","beta1","beta2", "mu"))
+
+```
+
+Then, we need to transform `stanfit` object into `coda::mcmc.list` object. 
+
+```{r}
+## transforming stanfit object into mcmc.list object
+library(coda)
+samples<- mcmc.list(lapply(1:ncol(fit1), function(x) mcmc(as.array(fit1)[,x,])))
+
+## because we have three parameters, and 100 observations, we know that first three chains are the chains for the parameters
+coef.samples <- samples[,1:3]
+
+## and chains from the 4 to 103 are the fitted values
+fitted.samples <- samples[,4:103]
+```
+
+Now, we can call `bayes.table'
+```{r}
+bayes.table(list(coef.samples), list(y), list(fitted.samples), include.rsquared=T, output="word")
+```
+
+You should get something like this:
+
+```{r}
+============================
+              Model 1       
+----------------------------
+a                0.14       
+              [-0.09;  0.37]
+beta1            0.30      
+              [ 0.07;  0.51]
+beta2           -0.41      
+              [-0.67; -0.14]
+----------------------------
+Num. obs.      100          
+R^2              0.13       
+Eff. Size     4374.56       
+Geweke Diag.     2.13       
+============================
+```
+
+You can combine many models in one table in this way. 
+You do not need to include samples of fitted values if  you do not want r-squared to be included (it is not included by default).
