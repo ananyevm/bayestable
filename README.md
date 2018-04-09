@@ -233,7 +233,7 @@ coef.samples <- samples[,1:3]
 fitted.samples <- samples[,4:103]
 ```
 
-Now, we can call `bayes.table'
+Now, we can call `bayes.table`
 ```{r}
 bayes.table(list(coef.samples), list(y), list(fitted.samples), include.rsquared=T, output="word")
 ```
